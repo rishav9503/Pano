@@ -6,6 +6,8 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import {Icon, Card, Avatar} from 'react-native-elements';
 
@@ -15,6 +17,7 @@ export default class Feed extends Component {
     this.state = {
       userPicture: '',
       posts: [],
+      isLoading: false,
     };
   }
   componentDidMount() {
@@ -27,20 +30,20 @@ export default class Feed extends Component {
     this.setState({userPicture: myJson.users[0].profilepicture});
   }
   async fetchPosts() {
+    this.setState({isLoading: true});
     try {
       const response = await fetch('https://panorbit.in/api/posts.json');
       const myJson = await response.json();
       console.log(myJson, 'Posts');
 
-      this.setState({posts: myJson.posts});
-      console.log(this.state.posts.length, '33');
+      this.setState({posts: myJson.posts, isLoading: false});
     } catch (error) {
       console.log(error);
+      this.setState({isLoading: false});
     }
   }
 
   render() {
-    console.log(this.state.posts.length, '33');
     return (
       <View style={{padding: 10}}>
         <View
@@ -80,7 +83,7 @@ export default class Feed extends Component {
           )}
         </View>
         <ScrollView>
-          {this.state.posts.length > 0 ? (
+          {!this.state.isLoading && this.state.posts.length > 0 ? (
             this.state.posts.map((item, key) => {
               let Image_Http_URL = {uri: item.image};
               return (
@@ -163,7 +166,27 @@ export default class Feed extends Component {
             <Text>Nothing to show</Text>
           )}
         </ScrollView>
+        {this.state.isLoading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#000000" />
+          </View>
+        )}
       </View>
     );
   }
 }
+const styles = StyleSheet.create({
+  loadingContainer: {
+    // backgroundColor: '#595959',
+    opacity: 0.7,
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+});
